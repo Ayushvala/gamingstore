@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online.com - Home</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            let userEmail = sessionStorage.getItem("userEmail");
+            let userId = sessionStorage.getItem("userId");
+
+            console.log("Retrieved userId:", userId); // Debugging
+
+            // Redirect if not logged in
+            if (!userEmail || !userId) {
+                window.location.href = "login.html";
+            } else {
+                $("#user-email").text(userEmail);
+                loadProducts();
+            }
+
+            // Logout button
+            $(".logout-btn").click(function () {
+                sessionStorage.clear();
+                window.location.href = "login.html";
+            });
+
+            // Load games from backend
+            function loadProducts() {
+                $.ajax({
+                    url: "https://localhost:7183/api/Users/products",
+                    type: "GET",
+                    success: function (products) {
+                        $(".games-container").empty();
+                        console.log(products);
+
+                        if (products.length === 0) {
+                            $(".games-container").html("<p>No products available.</p>");
+                            return;
+                        }
+
+                        products.forEach(product => {
+                            let imageUrl = `IMAGES/${product.photo}`;
+
+                            $(".games-container").append(`
+                                <div class="game-card">
+                                    <div class="game-card-img">
+                                        <img src="${imageUrl}" alt="${product.name}" onerror="this.onerror=null; this.src='IMAGES/default.jpg';">
+                                    </div>
+                                    <h3>${product.name}</h3>
+                                    <p class="price">$${product.price}</p>
+                                    <p class="quantity">Quantity: <span class="quantity-value">${product.quantity}</span></p>
+                                    <button class="add-to-cart" data-id="${product.id}" data-price="${product.price}" data-initial-quantity="${product.quantity}">Add to Cart</button>
+                                </div>
+                            `);
+                        });
+
+                        // Add to cart functionality
+                        $(".add-to-cart").click(function () {
+                            let productId = $(this).data("id");
+                            let userId = sessionStorage.getItem("userId");
+                            let productPrice = $(this).data("price");
+                            let initialQuantity = $(this).data("initial-quantity");
+                            let quantityElem = $(`.add-to-cart[data-id=${productId}]`).siblings(".quantity").find(".quantity-value");
+
+                            if (!userId) {
+                                alert("User ID missing, please log in again.");
+                                window.location.href = "login.html";
+                                return;
+                            }
+
+                            console.log(`Adding to cart: userId=${userId}, productId=${productId}`); // Debugging
+
+                            // Check if there is enough stock before adding
+                            if (initialQuantity > 0) {
+                                $.ajax({
+                                    url: `https://localhost:7183/api/Users/addToCart?userId=${userId}&productId=${productId}`,
+                                    type: "POST",
+                                    success: function () {
+                                        alert("Product added to cart successfully!");
+
+                                        // Decrease quantity in UI
+                                        let newQuantity = initialQuantity - 1;
+                                        $(this).data("initial-quantity", newQuantity); // Update initial quantity data attribute
+                                        quantityElem.text(newQuantity); // Update the UI quantity
+                                    },
+                                    error: function (xhr) {
+                                        console.error("Error Response:", xhr.responseText); // Debugging
+                                        alert("Failed to add Product to cart.");
+                                    }
+                                });
+                            } else {
+                                alert("No stock available to add to the cart.");
+                            }
+                        });
+                    },
+                    error: function () {
+                        alert("Failed to load Products.");
+                    }
+                });
+            }
+        });
+    </script>
+
+    <style>
+        /* Reset default styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f7f7f7;
+            color: #333;
+            margin: 0;
+            padding: 0;
+            text-align: center;
+        }
+
+        /* Header */
+        .header {
+            background-color: #34495e;
+            padding: 20px;
+            color: #fff;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #2c3e50;
+        }
+
+        .header h2 {
+            font-size: 24px;
+            font-weight: 600;
+        }
+
+        .logout-btn, .cart-btn {
+            background: #3498db;
+            color: #fff;
+            padding: 10px 25px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background 0.3s ease;
+        }
+
+        .logout-btn:hover, .cart-btn:hover {
+            background: #2980b9;
+        }
+
+        /* Main content - products */
+        .games-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 20px;
+            padding: 40px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Product card */
+        .game-card {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        .game-card-img img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .game-card h3 {
+            font-size: 20px;
+            margin: 15px 0;
+        }
+
+        .price {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2ecc71;
+            margin-bottom: 15px;
+        }
+
+        .quantity {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #7f8c8d;
+        }
+
+        .add-to-cart {
+            background: purple;
+            color: #fff;
+            padding: 10px;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            transition: background 0.3s ease;
+        }
+
+        .add-to-cart:hover {
+            background: purple;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="header">
+        <h2>Welcome, <span id="user-email"></span>!</h2>
+        <div>
+            <button class="logout-btn">Logout</button>
+            <a href="cart.html" class="cart-btn">Go to Cart</a>
+        </div>
+    </div>
+
+    <div class="games-container">
+        <p>Loading Products...</p>
+    </div>
+
+</body>
+
+</html>

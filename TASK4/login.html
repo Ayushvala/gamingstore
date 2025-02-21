@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    
+    <script>
+    $(document).ready(function () {
+        $(".btn").click(function () {
+            let email = $("#email").val();
+            let password = $("#password").val();
+
+            if (email === "" || password === "") {
+                alert("Please fill all fields.");
+                return;
+            }
+
+            $.ajax({
+                url: "https://localhost:7183/api/Users/login",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    email: email,
+                    password: password
+                }),
+                success: function (response) {
+                    alert("Login successful!");
+
+                    // Store user email and ID correctly
+                    sessionStorage.setItem("userEmail", email); // Use input email
+                    sessionStorage.setItem("userId", response.userId); // Store userId from API response
+                    
+                    window.location.href = "home.html"; // Redirect to home page
+                },
+                error: function (xhr) {
+                    alert(xhr.responseJSON.message || "Login failed. Please check your credentials.");
+                }
+            });
+        });
+    });
+    </script>
+
+    <style>
+        body {
+       
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            text-align: center;
+        
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 300px;
+            height: 300px;
+            background:white(0, 0, 0, 0.85);
+            padding: 50px;
+            border-radius: 10px;
+         
+            border: 2px solid black;
+        }
+        h2 {
+            color: purple;
+           
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: black;
+            border-radius: 5px;
+            background: transparent;
+            color: black;
+            font-size: 14px;
+        }
+        .btn {
+            background: purple;
+            color: #fff;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: #781386;
+        }
+        .register-link {
+            margin-top: 15px;
+            color: purple;
+            text-decoration: none;
+            display: block;
+            font-weight: bold;
+        }
+        .register-link:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2> Login</h2>
+        <input type="email" id="email" placeholder="Enter Email">
+        <input type="password" id="password" placeholder="Enter Password">
+        <button class="btn">Login</button>
+        <a href="registration.html" class="register-link">Don't have an account? Register here</a>
+    </div>
+</body>
+</html>

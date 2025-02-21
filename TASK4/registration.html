@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $(".btn").click(function () {
+                let name = $("#name").val().trim();
+                let email = $("#email").val().trim();
+                let password = $("#password").val().trim();
+    
+                if (name === "" || email === "" || password === "") {
+                    alert("Please fill all fields.");
+                    return;
+                }
+    
+                $.ajax({
+                    url: "https://localhost:7183/api/Users/register", // Update with your actual API URL
+                    type: "POST",
+                    contentType: "application/json",
+                    data: JSON.stringify({
+                        name: name,
+                        email: email,
+                        password: password
+                    }),
+                    success: function (response) {
+                        alert(response.message); // Show success message
+                        window.location.href = "login.html"; // Redirect to login page
+                    },
+                    error: function (xhr) {
+                        let errorMessage = xhr.responseJSON ? xhr.responseJSON.message : "Registration failed!";
+                        alert(errorMessage);
+                    }
+                });
+            });
+        });
+    </script>
+    
+    <style>
+        body {
+            font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;
+            text-align: center;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            width: 400px;
+            padding: 30px;
+            border-radius: 10px;
+            border: 2px solid black;
+         
+    
+        }
+        h2 {
+            color: purple;
+          
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: black;
+            border-radius: 5px;
+            background: transparent;
+            color: black;
+            font-size: 14px;
+        
+        }
+        .btn {
+            background: purple;
+            color: #fff;
+            padding: 12px;
+            width: 100%;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+        .btn:hover {
+            background: #781386;;
+        }
+        .login-link {
+            margin-top: 15px;
+            color: purple;
+            text-decoration: none;
+            display: block;
+            font-weight: bold;
+        }
+        .login-link:hover {
+            text-decoration: underline;
+        }
+        .footer-text {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #ccc;
+            font-family: 'Arial', sans-serif;
+        }
+    </style>
+  
+</head>
+<body>
+    <div class="container">
+        <h2> Registration</h2>
+        <input type="text" id="name" placeholder="Enter Name">
+        <input type="email" id="email" placeholder="Enter Email">
+        <input type="password" id="password" placeholder="Enter Password">
+        <button class="btn">Register</button>
+        <a href="login.html" class="login-link">Already have an account? Login here</a>
+        <p class="footer-text">Purchase your favorite Product!</p>
+    </div>
+</body>
+</html>

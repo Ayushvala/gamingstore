@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo CRUD Operations</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: #007bff;
+            color: white;
+            text-align: center;
+            padding: 10px 0;
+        }
+
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+            margin: 5px;
+        }
+
+        button.delete {
+            background-color: #dc3545;
+        }
+
+        button.edit {
+            background-color: #ffc107;
+        }
+
+        input, select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 80%;
+        }
+
+        .form-container {
+            margin-bottom: 20px;
+        }
+
+        .form-container label {
+            font-size: 14px;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .form-container button {
+            width: 100%;
+            background-color: #007bff;
+        }
+
+        .form-container button:disabled {
+            background-color: #999;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Todo CRUD Operations</h1>
+</header>
+
+<div class="container">
+    <!-- Form for adding tasks -->
+    <form id="todoForm">
+        <h2>Add New Task</h2>
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="description">Description:</label>
+        <input type="text" id="description" name="description" required>
+
+        <label for="status">Status:</label>
+        <input type="text" id="status" name="status" required>
+
+        <label for="createdAt">Created At:</label>
+        <input type="datetime-local" id="createdAt" name="createdAt" required>
+
+        <input type="submit" value="Add Task">
+    </form>
+
+    <!-- Response message -->
+    <div id="responseMessage"></div>
+
+    <h2>Todo List</h2>
+    <table id="todoTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Description</th>
+                <th>Status</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Todo items will be injected here by JS -->
+        </tbody>
+    </table>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    const apiUrl = 'http://localhost:5068/api/todo';  // Adjust if your backend is different
+
+    // Fetch todos from the API and render them
+    function getTodos() {
+        $.ajax({
+            url: apiUrl,  // URL of your API
+            type: 'GET',  // GET request to fetch todos
+            success: function(todos) {
+                const todoTable = $('#todoTable tbody');
+                todoTable.empty(); // Clear the table body before rendering new rows
+
+                todos.forEach(todo => {
+                    const row = `
+                        <tr id="todo-${todo.id}">
+                            <td>${todo.id}</td>
+                            <td>${todo.name}</td>
+                            <td>${todo.description}</td>
+                            <td>${todo.status}</td>
+                            <td>
+                                <button class="edit" onclick="editTodo(${todo.id})">Edit</button>
+                                <button class="delete" onclick="deleteTodo(${todo.id})">Delete</button>
+                            </td>
+                        </tr>
+                    `;
+                    todoTable.append(row);
+                });
+            },
+            error: function(xhr, status, error) {
+                $('#responseMessage').text('Error fetching todos: ' + error);
+            }
+        });
+    }
+
+    // Handle form submission to add a new task
+    $("#todoForm").submit(function(event) {
+        event.preventDefault(); // Prevent the form from reloading the page
+        
+        const formData = {
+            Name: $("#name").val(),
+            Description: $("#description").val(),
+            Status: $("#status").val(),
+            CreatedAt: $("#createdAt").val()
+        };
+
+        // Send a POST request to the API
+        $.ajax({
+            url: apiUrl,  // URL of your API
+            type: 'POST', // Method type
+            contentType: 'application/json', // Tell the API we're sending JSON
+            data: JSON.stringify(formData),  // Convert the form data to a JSON string
+            success: function(response) {
+                $('#responseMessage').text('Task added successfully!');
+                getTodos(); // Refresh the todo list after adding a task
+            },
+            error: function(xhr, status, error) {
+                $('#responseMessage').text('Error: ' + error);
+            }
+        });
+    });
+
+    // Edit an existing Todo
+    function editTodo(id) {
+        $.ajax({
+            url: `${apiUrl}/${id}`,  // URL of the todo item to fetch
+            type: 'GET',  // GET request to fetch the todo
+            success: function(todo) {
+                $("#name").val(todo.name);
+                $("#description").val(todo.description);
+                $("#status").val(todo.status);
+                $("#createdAt").val(todo.createdAt);
+                $('#todoForm').attr('data-id', todo.id); // Store the ID in the form for updating
+
+                // Change form submit button to 'Update Task'
+                $("input[type='submit']").val('Update Task').attr('onclick', `updateTodo(${todo.id})`);
+            },
+            error: function(xhr, status, error) {
+                $('#responseMessage').text('Error fetching todo: ' + error);
+            }
+        });
+    }
+
+    // Update an existing Todo
+    function updateTodo(id) {
+        const updatedTodo = {
+            Name: $("#name").val(),
+            Description: $("#description").val(),
+            Status: $("#status").val(),
+            CreatedAt: $("#createdAt").val()
+        };
+
+        $.ajax({
+            url: `${apiUrl}/${id}`,  // URL of the todo item to update
+            type: 'PUT',  // PUT request to update the todo
+            contentType: 'application/json',
+            data: JSON.stringify(updatedTodo),
+            success: function(response) {
+                $('#responseMessage').text('Task updated successfully!');
+                getTodos(); // Refresh the todo list after updating a task
+                resetForm(); // Reset the form
+            },
+            error: function(xhr, status, error) {
+                $('#responseMessage').text('Error updating todo: ' + error);
+            }
+        });
+    }
+
+    // Delete a Todo
+    function deleteTodo(id) {
+        $.ajax({
+            url: `${apiUrl}/${id}`,  // URL of the todo item to delete
+            type: 'DELETE',  // DELETE request to remove the todo
+            success: function(response) {
+                $('#responseMessage').text('Task deleted successfully!');
+                getTodos(); // Refresh the todo list after deleting a task
+            },
+            error: function(xhr, status, error) {
+                $('#responseMessage').text('Error deleting todo: ' + error);
+            }
+        });
+    }
+
+    // Reset form
+    function resetForm() {
+        $("#todoForm")[0].reset();
+        $("input[type='submit']").val('Add Task').attr('onclick', ''); // Reset the button
+    }
+
+    // Initialize the app by fetching todos
+    $(document).ready(function() {
+        getTodos(); // Fetch and display the list of todos when the page loads
+    });
+</script>
+
+</body>
+</html>

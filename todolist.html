@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do-List</title>
+
+</head>
+
+<body>
+    <div class="todolist">
+        <h1>TO-DO-LIST</h1>
+
+        <table>
+            <tr>
+                <td>
+                    <input type="text" id="inputoftodolist" placeholder="Enter a task">
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <button id="todolistbutton" onclick="createlist()">Create</button>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <ul id="list"></ul>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <script>
+
+
+        function createlist() {
+            let input = document.getElementById('inputoftodolist');
+            let valueofinput = input.value;
+            if (valueofinput !== "") {
+                let li = document.createElement('li');
+                li.textContent = valueofinput;
+                let deletebutton = document.createElement('button');
+                deletebutton.textContent = 'Delete';
+                deletebutton.onclick = function () {
+                    li.remove();
+                }
+                li.appendChild(deletebutton);
+
+                document.getElementById('list').appendChild(li);
+                input.value = "";
+            }
+        }
+
+
+
+    </script>
+</body>
+
+</html>

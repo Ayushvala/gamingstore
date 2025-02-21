@@ -1,0 +1,34 @@
+<div class="dashboard">
+  <!-- Hero Section -->
+  <div class="hero-section">
+    <h1>Welcome to the Shoes Store</h1>
+    <p>Your one-stop shop for trendy and comfortable footwear!</p>
+    <a href="/products" class="cta-button">Explore Our Collection</a>
+  </div>
+
+  <!-- Featured Products Section -->
+  <div class="featured-products">
+    <h2>Featured Products</h2>
+    <div class="product-cards">
+      <div *ngFor="let product of products" class="product-card">
+        <img [src]="product.image" [alt]="product.name" />
+        <h3>{{ product.name }}</h3>
+        <p>{{ product.description }}</p>
+        <a [href]="product.link" class="view-details">View Details</a>
+
+        <!-- Add to Cart Button -->
+        <button (click)="addToCart(product)" class="add-to-cart">
+          Add to Cart
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cart Icon with Count -->
+  <div class="cart-icon">
+    <a href="/cart">
+      <img src="assets/images/icon.png" alt="Cart" />
+      <span class="cart-count">{{ cartCount }}</span>
+    </a>
+  </div>
+</div>
